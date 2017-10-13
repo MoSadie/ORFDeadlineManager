@@ -9,6 +9,8 @@ using System.Xml;
 using System.Xml.Serialization;
 using System.IO;
 using System.Text;
+using UnityEngine.Networking;
+using Newtonsoft.Json;
 
 public class XMLDeadline : MonoBehaviour {
 
@@ -37,27 +39,59 @@ public class XMLDeadline : MonoBehaviour {
 
     public void SaveDeadline()
     {
-        XmlSerializer serializer = new XmlSerializer(typeof(DeadlineDB));
-        //FileStream stream = new FileStream(Application.dataPath + "/StreamingAssets/XML/DeadlineDB.xml", FileMode.Create);
-        using (StreamWriter sw = new StreamWriter(Application.dataPath + "/StreamingAssets/XML/DeadlineDB.xml", false, Encoding.UTF8))
-        {
-            serializer.Serialize(sw, deadlineDB);
-        }
-        //serializer.Serialize(stream, deadlineDB);
-        //stream.Close();
-        Title.text = "";
-        Description.text = "";
-        DueDate.text = "";
-        Author.text = "";
-        Team.text = "";
+        WWWForm form = new WWWForm();
+        form.AddField("accessKey", ConfigFile.getPassword()); //FIXME
+        form.AddField("fileType", "deadline");
+        form.AddField("owner", Author.text);
+        form.AddField("title", Title.text);
+        form.AddField("date", DueDate.text);
+        form.AddField("description", JsonConvert.SerializeObject(new string[1] {Description.text}));
+        form.AddField("team", Team.text);
+
+        UnityWebRequest request = UnityWebRequest.Post(ConfigFile.getBaseURL()+"/scripts/create.php", form);
+
+        StartCoroutine(sendCreateRequest(request));
 
     }
 
+    private IEnumerator sendCreateRequest(UnityWebRequest request)
+    {
+        yield return request.SendWebRequest();
+
+        Debug.Log("Result: IsError:" + request.isHttpError + " Code:" + request.responseCode + " Data: "+ request.downloadHandler.text);
+
+        if (!request.isHttpError)
+        {
+            Title.text = "";
+            Description.text = "";
+            DueDate.text = "";
+            Author.text = "";
+            Team.text = "";
+            DeadLineEntry entry = new DeadLineEntry(Title.text, Description.text, DueDate.text, Author.text, Team.text, request.downloadHandler.text);
+            deadlineDB.DeadLineList.Add(entry);
+            SceneManager.LoadScene("Deadlines");
+        }
+    }
+
     public void LoadDeadline() {
-        XmlSerializer serializer = new XmlSerializer(typeof(DeadlineDB));
-        FileStream stream = new FileStream(Application.dataPath + "/StreamingAssets/XML/DeadlineDB.xml", FileMode.Open);
-        deadlineDB = serializer.Deserialize(stream) as DeadlineDB;
-        stream.Close();
+        
+        //FileStream stream = new FileStream(Application.dataPath + "/StreamingAssets/XML/DeadlineDB.xml", FileMode.Open);
+        UnityWebRequest uwr = UnityWebRequest.Get(ConfigFile.getBaseURL() + "/scripts/export.php");
+
+        StartCoroutine(sendGetRequest(uwr));
+    }
+
+    private IEnumerator sendGetRequest(UnityWebRequest request)
+    {
+        yield return request.SendWebRequest();
+
+        if (!request.isHttpError)
+        {
+            XmlSerializer serializer = new XmlSerializer(typeof(DeadlineDB));
+            StringReader stream = new StringReader(request.downloadHandler.text);
+            deadlineDB = serializer.Deserialize(stream) as DeadlineDB;
+            stream.Close();
+        }
     }
 
     public void DeleteDeadline(GameObject entry) 
@@ -75,14 +109,32 @@ public class XMLDeadline : MonoBehaviour {
             
             if (title.ToLower() == ded.Title.ToLower()) //ded.DeadLineEntry.ToLower() || ded is already of the type DeadLineEntry, what we want to get is the variable Title of ded
             {
-                deadlineDB.DeadLineList.Remove(ded); //Remove the entry from the list that matches with the title
-                SaveDeadline();
-                SceneManager.LoadScene("Deadlines");
+                WWWForm form = new WWWForm();
+                form.AddField("accessKey", ConfigFile.getPassword());
+                form.AddField("fileType", "deadline");
+                form.AddField("fileName", ded.FileName);
+                
+
+                UnityWebRequest request = UnityWebRequest.Post(ConfigFile.getBaseURL() + "/scripts/delete.php", form);
+
+                StartCoroutine(sendDeleteRequest(request));
+
+            
                 break;
             }
         }
+    }
 
-        
+    private IEnumerator sendDeleteRequest(UnityWebRequest request)
+    {
+        yield return request.SendWebRequest();
+
+        Debug.Log("Result: IsError:" + request.isHttpError + " Code:" + request.responseCode);
+
+        if (!request.isHttpError)
+        {
+            SceneManager.LoadScene("Deadlines");
+        }
     }
 
     public void ValidateInput()
@@ -111,10 +163,7 @@ public class XMLDeadline : MonoBehaviour {
         }
         else
         {
-            DeadLineEntry entry = new DeadLineEntry(Title.text, Description.text, DueDate.text, Author.text, Team.text);
-            deadlineDB.DeadLineList.Add(entry);
             SaveDeadline();
-            SceneManager.LoadScene("Deadlines");
         }
     }
 
@@ -137,15 +186,17 @@ public class XMLDeadline : MonoBehaviour {
             DueDate = "";
             Author = "";
             Team = "";
+            FileName = "";
         }
 
-        public DeadLineEntry(string title, string desc, string due, string author, string team)
+        public DeadLineEntry(string title, string desc, string due, string author, string team, string fileName)
         {
             Title = title;
             Description = desc;
             DueDate = due;
             Author = author;
             Team = team;
+            FileName = fileName;
         }
 
         public string
@@ -153,7 +204,7 @@ public class XMLDeadline : MonoBehaviour {
         Title,
         DueDate,
         Description,
-        Team;
+        Team, FileName;
     }
 
     [System.Serializable]
@@ -161,7 +212,4 @@ public class XMLDeadline : MonoBehaviour {
         public List<DeadLineEntry> DeadLineList = new List<DeadLineEntry>();
      
     }
-
-
-
 }

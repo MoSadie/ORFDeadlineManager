@@ -6,11 +6,10 @@ using UnityEngine.UI;
 using System.IO;
 using System.Xml;
 using System.Globalization;
+using UnityEngine.Networking;
 
 public class XMLDeadlineDisplay : MonoBehaviour
 {
-
-    public string DeadlineDBPath;
 
     public Text Display;
 
@@ -27,13 +26,22 @@ public class XMLDeadlineDisplay : MonoBehaviour
     // Use this for initialization
     void Start()
     {
-        parseXmlFile(Application.dataPath + DeadlineDBPath);
+        UnityWebRequest uwr = UnityWebRequest.Get(ConfigFile.getBaseURL() + "/scripts/export.php");
+        StartCoroutine(sendGetRequest(uwr));
         //listEnd = GameObject.FindGameObjectWithTag("listEnd").transform;
         original = deadLinePrefab.GetComponent<Image>().color;
-
-
-
     }
+
+    private IEnumerator sendGetRequest(UnityWebRequest request)
+    {
+        yield return request.SendWebRequest();
+
+        if (!request.isHttpError)
+        {
+            parseXmlFile(request.downloadHandler.text);
+        }
+    }
+
     void Update()
     {
         timer += Time.deltaTime;      
@@ -55,20 +63,20 @@ public class XMLDeadlineDisplay : MonoBehaviour
     void parseXmlFile(string xmlData)
     {
         XmlDocument xmlDoc = new XmlDocument();
-        xmlDoc.Load(xmlData);
+        xmlDoc.Load(new StringReader(xmlData));
 
         string xmlPathPattern = "//DeadLineList/DeadLineEntry";
         XmlNodeList myNodeList = xmlDoc.SelectNodes(xmlPathPattern);
-        List<string[]> deadlines = new List<string[]>(); //Order of elements [0] = title, [1] = author, [2] = desc, [3] = date, [4] = team
+        List<string[]> deadlines = new List<string[]>();
 
 
         foreach (XmlNode node in myNodeList)
         {
-            XmlNode author = node.FirstChild;
-            XmlNode title = author.NextSibling;
-            XmlNode duedate = title.NextSibling;
-            XmlNode description = duedate.NextSibling;
-            XmlNode team = description.NextSibling;
+            XmlNode author = node["Author"];
+            XmlNode title = node["Title"];
+            XmlNode duedate = node["DueDate"];
+            XmlNode description = node["Description"];
+            XmlNode team = node["Team"];
 
 
             //deadlines.Add("Title : " + title.InnerXml + "\nAuthor : " + author.InnerXml + "\nDue Date : " + duedate.InnerXml + "\nDescription : " + description.InnerXml + "\n\n");

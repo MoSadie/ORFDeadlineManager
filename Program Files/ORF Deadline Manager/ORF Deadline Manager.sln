@@ -1,7 +1,7 @@
 ﻿
-Microsoft Visual Studio Solution File, Format Version 11.00
-# Visual Studio 2010
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ORF Deadline Manager", "Assembly-CSharp.csproj", "{15870208-0470-B02A-928B-389F141AAA63}"
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 2017
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ORF Deadline Manager", "ORF Deadline Manager.csproj", "{15F85B85-7DAC-9760-E6FC-0788D9F2301F}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -9,15 +9,12 @@ Global
 		Release|Any CPU = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{15870208-0470-B02A-928B-389F141AAA63}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{15870208-0470-B02A-928B-389F141AAA63}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{15870208-0470-B02A-928B-389F141AAA63}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{15870208-0470-B02A-928B-389F141AAA63}.Release|Any CPU.Build.0 = Release|Any CPU
+		{15F85B85-7DAC-9760-E6FC-0788D9F2301F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{15F85B85-7DAC-9760-E6FC-0788D9F2301F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{15F85B85-7DAC-9760-E6FC-0788D9F2301F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{15F85B85-7DAC-9760-E6FC-0788D9F2301F}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
-	EndGlobalSection
-	GlobalSection(MonoDevelopProperties) = preSolution
-		StartupItem = Assembly-CSharp.csproj
 	EndGlobalSection
 EndGlobal
